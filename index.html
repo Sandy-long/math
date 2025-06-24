@@ -45,10 +45,43 @@
             margin: 0 10px;
             cursor: pointer;
         }
+        .clickable-day {
+            color: #1a73e8;
+            cursor: pointer;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .clickable-day:hover {
+            text-decoration: underline;
+        }
+        .progress-container {
+            margin: 20px 0;
+            text-align: center;
+        }
+        .progress-bar {
+            height: 20px;
+            background: #e0e0e0;
+            border-radius: 10px;
+            margin: 10px 0;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            background: #4CAF50;
+            width: 0%;
+            transition: width 0.3s;
+        }
     </style>
 </head>
 <body>
     <h1>奥数60天打卡表</h1>
+    
+    <div class="progress-container">
+        <div>已完成: <span id="completedDays">0</span>/60 天</div>
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+    </div>
     
     <div class="controls">
         <button id="saveBtn">保存进度</button>
@@ -71,17 +104,36 @@
     </table>
 
     <script>
-        // 生成60天打卡行
+        // 生成60天打卡行（使第一天文字可点击）
         const tbody = document.querySelector('#checklist tbody');
         for (let i = 1; i <= 60; i++) {
             const row = document.createElement('tr');
+            
+            // 特别处理第一天
+            const dayCell = i === 1 
+                ? `<td><span class="clickable-day" onclick="window.open('https://sandy-long.github.io/math1/', '_blank')">第1天</span></td>`
+                : `<td>第${i}天</td>`;
+            
             row.innerHTML = `
-                <td>第${i}天</td>
+                ${dayCell}
                 <td><input type="checkbox" class="checkbox" id="day${i}"></td>
                 <td class="date-cell"></td>
                 <td><input type="text" class="note" placeholder="可填写备注"></td>
             `;
             tbody.appendChild(row);
+        }
+
+        // 更新进度显示
+        function updateProgress() {
+            const totalDays = 60;
+            const completed = document.querySelectorAll('.checkbox:checked').length;
+            document.getElementById('completedDays').textContent = completed;
+            document.getElementById('progressFill').style.width = `${(completed/totalDays)*100}%`;
+            
+            // 简单庆祝动画（当完成时）
+            if (completed === totalDays) {
+                alert('恭喜您完成了60天打卡挑战！🎉');
+            }
         }
 
         // 为所有复选框添加事件监听器
@@ -93,17 +145,16 @@
                 
                 if(this.checked) {
                     row.classList.add('completed');
-                    // 自动填写当前日期
                     const today = new Date();
                     dateCell.textContent = today.toLocaleDateString();
-                    // 保存到本地存储
                     saveToLocalStorage(this.id, true, dateCell.textContent, noteInput.value);
                 } else {
                     row.classList.remove('completed');
                     dateCell.textContent = '';
-                    // 从本地存储移除
                     saveToLocalStorage(this.id, false, '', noteInput.value);
                 }
+                
+                updateProgress();
             });
         });
 
@@ -147,6 +198,7 @@
                     noteInput.value = parsedData.note || '';
                 }
             }
+            updateProgress();
         }
 
         // 重置所有数据
@@ -160,6 +212,7 @@
                     row.querySelector('.date-cell').textContent = '';
                     row.querySelector('.note').value = '';
                 });
+                updateProgress();
             }
         });
 
