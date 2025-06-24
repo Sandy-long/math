@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>60天打卡表</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: center;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        .completed {
+            background-color: #e6ffe6;
+        }
+        .checkbox {
+            transform: scale(1.5);
+            cursor: pointer;
+        }
+        .controls {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        button {
+            padding: 8px 16px;
+            margin: 0 10px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>奥数60天打卡表</h1>
+    
+    <div class="controls">
+        <button id="saveBtn">保存进度</button>
+        <button id="resetBtn">重置全部</button>
+        <button id="printBtn">打印表格</button>
+    </div>
+    
+    <table id="checklist">
+        <thead>
+            <tr>
+                <th width="20%">天数</th>
+                <th width="20%">完成状态</th>
+                <th width="30%">完成日期</th>
+                <th width="30%">备注</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- 使用JavaScript动态生成60天打卡行 -->
+        </tbody>
+    </table>
+
+    <script>
+        // 生成60天打卡行
+        const tbody = document.querySelector('#checklist tbody');
+        for (let i = 1; i <= 60; i++) {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>第${i}天</td>
+                <td><input type="checkbox" class="checkbox" id="day${i}"></td>
+                <td class="date-cell"></td>
+                <td><input type="text" class="note" placeholder="可填写备注"></td>
+            `;
+            tbody.appendChild(row);
+        }
+
+        // 为所有复选框添加事件监听器
+        document.querySelectorAll('.checkbox').forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                const row = this.closest('tr');
+                const dateCell = row.querySelector('.date-cell');
+                const noteInput = row.querySelector('.note');
+                
+                if(this.checked) {
+                    row.classList.add('completed');
+                    // 自动填写当前日期
+                    const today = new Date();
+                    dateCell.textContent = today.toLocaleDateString();
+                    // 保存到本地存储
+                    saveToLocalStorage(this.id, true, dateCell.textContent, noteInput.value);
+                } else {
+                    row.classList.remove('completed');
+                    dateCell.textContent = '';
+                    // 从本地存储移除
+                    saveToLocalStorage(this.id, false, '', noteInput.value);
+                }
+            });
+        });
+
+        // 为备注输入框添加事件监听器
+        document.querySelectorAll('.note').forEach(input => {
+            input.addEventListener('change', function() {
+                const row = this.closest('tr');
+                const checkbox = row.querySelector('.checkbox');
+                const dateCell = row.querySelector('.date-cell');
+                saveToLocalStorage(checkbox.id, checkbox.checked, dateCell.textContent, this.value);
+            });
+        });
+
+        // 保存到本地存储
+        function saveToLocalStorage(id, checked, date, note) {
+            const data = {
+                checked: checked,
+                date: date,
+                note: note
+            };
+            localStorage.setItem(id, JSON.stringify(data));
+        }
+
+        // 从本地存储加载数据
+        function loadFromLocalStorage() {
+            for (let i = 1; i <= 60; i++) {
+                const id = `day${i}`;
+                const data = localStorage.getItem(id);
+                if (data) {
+                    const parsedData = JSON.parse(data);
+                    const checkbox = document.getElementById(id);
+                    const row = checkbox.closest('tr');
+                    const dateCell = row.querySelector('.date-cell');
+                    const noteInput = row.querySelector('.note');
+                    
+                    checkbox.checked = parsedData.checked;
+                    if (parsedData.checked) {
+                        row.classList.add('completed');
+                        dateCell.textContent = parsedData.date;
+                    }
+                    noteInput.value = parsedData.note || '';
+                }
+            }
+        }
+
+        // 重置所有数据
+        document.getElementById('resetBtn').addEventListener('click', function() {
+            if (confirm('确定要重置所有打卡记录吗？')) {
+                localStorage.clear();
+                document.querySelectorAll('.checkbox').forEach(checkbox => {
+                    checkbox.checked = false;
+                    const row = checkbox.closest('tr');
+                    row.classList.remove('completed');
+                    row.querySelector('.date-cell').textContent = '';
+                    row.querySelector('.note').value = '';
+                });
+            }
+        });
+
+        // 保存按钮
+        document.getElementById('saveBtn').addEventListener('click', function() {
+            alert('进度已自动保存！');
+        });
+
+        // 打印按钮
+        document.getElementById('printBtn').addEventListener('click', function() {
+            window.print();
+        });
+
+        // 页面加载时从本地存储恢复数据
+        window.addEventListener('load', loadFromLocalStorage);
+    </script>
+</body>
+</html>
