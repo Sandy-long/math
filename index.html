@@ -104,24 +104,31 @@
     </table>
 
     <script>
-        // 生成60天打卡行（使第一天文字可点击）
-        const tbody = document.querySelector('#checklist tbody');
-        for (let i = 1; i <= 60; i++) {
-            const row = document.createElement('tr');
-            
-            // 特别处理第一天
-            const dayCell = i === 1 
-                ? `<td><span class="clickable-day" onclick="window.open('https://sandy-long.github.io/math1/', '_blank')">第1天</span></td>`
-                : `<td>第${i}天</td>`;
-            
-            row.innerHTML = `
-                ${dayCell}
-                <td><input type="checkbox" class="checkbox" id="day${i}"></td>
-                <td class="date-cell"></td>
-                <td><input type="text" class="note" placeholder="可填写备注"></td>
-            `;
-            tbody.appendChild(row);
+      // 生成60天打卡行（使第一天和第二天文字可点击）
+    const tbody = document.querySelector('#checklist tbody');
+    for (let i = 1; i <= 60; i++) {
+        const row = document.createElement('tr');
+        
+        // 特别处理第一天和第二天
+        let dayCell;
+        if (i === 1) {
+            dayCell = `<td><span class="clickable-day" onclick="window.open('https://sandy-long.github.io/math1/', '_blank')">第1天</span></td>`;
+        } else if (i === 2) {
+            dayCell = `<td><span class="clickable-day" onclick="window.open('https://sandy-long.github.io/mayh2/', '_blank')">第2天</span></td>`;
+        } else {
+            dayCell = `<td>第${i}天</td>`;
         }
+        
+        row.innerHTML = `
+            ${dayCell}
+            <td><input type="checkbox" class="checkbox" id="day${i}"></td>
+            <td class="date-cell"></td>
+            <td><input type="text" class="note" placeholder="可填写备注"></td>
+        `;
+        tbody.appendChild(row);
+    }
+
+        
 
         // 更新进度显示
         function updateProgress() {
@@ -228,6 +235,7 @@
 
         // 页面加载时从本地存储恢复数据
         window.addEventListener('load', loadFromLocalStorage);
+		// updateProgress, event listeners, localStorage functions etc. remain the same
     </script>
 </body>
 </html>
